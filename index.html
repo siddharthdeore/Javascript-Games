@@ -9,7 +9,7 @@
 
 		canvas {
 			position: absolute;
-			background-color: #00005;
+			background-color: #001;
 		}
 	</style>
 </head>
@@ -114,9 +114,9 @@ function bonusSound() {
 	window.addEventListener('mouseup', mouseUpListener, !1);
 	window.addEventListener('keydown', this.keydown, false);
 	window.addEventListener('keyup', this.keyup, false);
-	window.addEventListener('touchstart', this.touchStart, false);
-	window.addEventListener('touchmove', this.touchMove, false);
-	window.addEventListener('touchend', this.touchEnd, false);
+	canvas.addEventListener('touchstart', this.touchStart, false);
+	canvas.addEventListener('touchmove', this.touchMove, false);
+	canvas.addEventListener('touchend', this.touchEnd, false);
 
 	addFruit();
 
