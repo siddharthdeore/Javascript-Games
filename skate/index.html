@@ -1,0 +1,298 @@
+<html>
+
+	<head></head>
+	<style>
+	body,
+	html {
+		margin: 0;
+		padding: 0;
+	}
+
+	#Canvas {
+		position: absolute;
+		background-color: #000;
+	}
+	</style>
+
+	<body><canvas id="Canvas" style="margin:auto;display:block;"></canvas></body>
+	<script type="text/javascript" src="shapes.js"></script>
+	<script type="text/javascript" src="sound.js"></script>
+	<script>
+	var canvas = document.getElementById("Canvas");
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	var ctx = canvas.getContext("2d");
+	var startCord = [-1 - 1];
+	var endCord = [-1 - 1];
+	canvas.width = width;
+	canvas.height = height;
+	gridSize = width / 10;
+	snap = [-1 - 1]
+	var colors = ['Red', 'Maroon', 'Yellow', 'Olive', 'Lime', 'Green', 'Aqua', 'Teal', 'Blue', 'Navy', 'Fuchsia', 'Purple', 'White', 'Silver', 'Gray'];
+	var slectedColor = "rgba(125,55,423,0.8)";
+	var dots = new Array;
+	var pallets = new Array;
+	var selectedIndex = 0;
+	window.addEventListener('mousedown', mouseDownListener, !1);
+	//	canvas.addEventListener('touchstart', this.touchStart, false);
+	canvas.addEventListener('touchmove', this.touchMove, false);
+	//	canvas.addEventListener('touchend', this.touchEnd, false);
+	var time = Date.now();
+	var start_time = time;
+	var elps_time = 0;
+	var game_speed = 1;
+	var PlatformCords = [width * 0.2, height * 0.8]
+	var enemy_time = time;
+	//	var interv = setInterval(loop, 10);
+	function mouseDownListener(e) {
+		snap[0] = Math.round(e.clientX / gridSize) * gridSize
+		snap[1] = Math.round(e.clientY / gridSize) * gridSize
+		x = snap[0];
+		y = snap[1];
+		flag = true;
+		for (var i = 0; i < Players.length; i++) {
+			var e = Players[i];
+			if (e.vy == 0) {
+				e.vy = 20;
+				jumpSound();
+			}
+		}
+	}
+
+	function touchMove(e) {
+		e.preventDefault();
+		var touch = e.touches[0];
+		snap[0] = Math.round(e.pageX / gridSize) * gridSize
+		snap[1] = Math.round(e.pageY / gridSize) * gridSize
+		for (var i = 0; i < Players.length; i++) {
+			var e = Players[i];
+			if (e.vy == 0) {
+				e.vy = 20;
+				jumpSound();
+			}
+		}
+	}
+	var arenaObjects = new Array;
+
+	function arenaObject(x, y, t) {
+		this.x = x;
+		this.y = y;
+		this.t = t;
+	}
+	var Players = new Array;
+	var Enemys = new Array;
+	var theta = 0;
+	Players.push(new Player(PlatformCords[0], PlatformCords[1] - 20));
+	//	Players.push(new Player(PlatformCords[0]-2,PlatformCords[1]-20));
+	var requestId;
+	loop();
+
+	function plotArena() {
+		line(ctx, 0, PlatformCords[1], width, PlatformCords[1], 'White', 2);
+		for (var i = 0; i < arenaObjects.length; i++) {
+			var e = arenaObjects[i];
+			circle(ctx, e.x, e.y, 5 * Math.random() + 2, "rgba(0,0,0,0)", "rgba(255,255,255,1)", 2);
+			e.x = e.x - 1 * game_speed;
+			if (e.x < -50) {
+				arenaObjects.splice(i, 1)
+			}
+		}
+		for (var i = 0; i < Enemys.length; i++) {
+			var e = Enemys[i];
+			rectangle(ctx, e.x - 10, e.y - e.vy, 20, e.vy, "rgba(128,128,128,0.5)", "rgba(255,255,255,1)", 2);
+			e.x = e.x - 1 * game_speed;
+			if (e.x < -50) {
+				Enemys.splice(i, 1)
+			}
+		}
+		for (var i = 0; i < Players.length; i++) {
+			var e = Players[i];
+			if (e.y > PlatformCords[1] - 20) {
+				e.vy = 0;
+				e.y = PlatformCords[1] - 20;
+			} else {
+				e.vy = e.vy - 0.8;
+				e.vy = Math.abs(e.vy) > 0 ? e.vy : 0;
+				e.y -= e.vy;
+			}
+			for (var i = 0; i < Enemys.length; i++) {
+				var o = Enemys[i];
+				if (getDistance(o.x, o.y, e.x, e.y) < 50) {
+					stop();
+					explosionSound();
+				}
+			}
+			//			e.y=e.y<PlatformCords[1]+20?e.y:PlatformCords[1]+20;
+			plotPlayer(ctx, e.x, e.y);
+			//			circle(ctx,e.x,e.y,20,"rgba(255,255,255,0.5)","rgba(255,255,255,1)",1);
+			theta = theta + game_speed / (20);
+			//			line(ctx,e.x,e.y,e.x+20*Math.cos(theta),e.y+20*Math.sin(theta));
+		}
+	}
+
+	function plotPlayer(ctx, x, y) {
+		circle(ctx, x + 20, y + 15, 5, "rgba(0,0,0,0)", "rgba(255,255,255,1)", 1);
+		line(ctx, x + 20, y + 15, x + 20 + 5 * Math.cos(theta), y + 15 + 5 * Math.sin(theta));
+		circle(ctx, x - 20, y + 15, 5);
+		line(ctx, x - 20, y + 15, x - 20 + 5 * Math.cos(theta), y + 15 + 5 * Math.sin(theta));
+		line(ctx, x - 20, y + 15, x + 20, y + 15);
+		kne1 = [x + 5 + 15 * Math.sin((PlatformCords[1] - y) * 0.0030 + 0.1), 15 + y - 15 * Math.cos((PlatformCords[1] - y) * 0.0030 + 0.1)];
+		kne2 = [x + 3 + 16 * Math.sin((PlatformCords[1] - y) * -0.0010 - 0.1), y - 20 * Math.cos((PlatformCords[1] - y) * -0.0034 - 0.1)];
+		line(ctx, x + 5, y + 15, kne1[0], kne1[1]);
+		line(ctx, x - 5, y + 15, kne1[0] - 5, kne1[1] - 2);
+		line(ctx, kne2[0] + 0, kne2[1], kne1[0], kne1[1]);
+		line(ctx, kne2[0] + 0, kne2[1], kne1[0] - 5, kne1[1]);
+		line(ctx, kne2[0] + 3, kne2[1] - 15, kne2[0] - 10, kne2[1] + 5);
+		line(ctx, kne2[0] + 3, kne2[1] - 14, kne2[0] + 10, kne2[1] + 5);
+		line(ctx, kne2[0], kne2[1], kne2[0] + 5, kne2[1] - 25); //body
+		circle(ctx, kne2[0] + 5, kne2[1] - 25, 7);
+		theta = theta > 2 * Math.PI ? 0 : theta;
+	}
+
+	function loop() {
+		//comupte();
+		requestId = undefined;
+		elps_time = time - start_time;
+		if (elps_time > 5000) {
+			game_speed = Math.round(elps_time / 5000);
+		}
+		if (time - enemy_time > getRandom(3000, 8000)) {
+			e = new Enemy(width, PlatformCords[1]);
+			Enemys.push(e);
+			enemy_time = time;
+			//			time = Date.now()
+		}
+		if (Date.now() - time > 1000) {
+			e = new arenaObject(width, getRandomInt(20, height * 0.7), 1);
+			arenaObjects.push(e);
+			time = Date.now()
+		}
+		paint();
+		plotArena();
+		ctx.fillStyle = "#FFFFFF";
+		ctx.fillText("Stage:" + game_speed, 10, 50);
+		//window.requestAnimationFrame(loop);
+		start();
+	}
+
+	function start() {
+		if (!requestId) {
+			requestId = window.requestAnimationFrame(loop);
+		}
+	}
+
+	function stop() {
+		if (requestId) {
+			window.cancelAnimationFrame(requestId);
+			requestId = undefined;
+		}
+	}
+
+	function Random() {
+		return Math.random();
+	}
+
+	function getRandom(min, max) {
+		return Math.random() * (max - min) + min;
+	}
+
+	function getRandomInt(min, max) {
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	function comupte() {}
+
+	function paint() {
+		ctx.clearRect(0, 0, width, height); // clears the screen
+	}
+
+	function Player(x, y) {
+		this.x = x;
+		this.y = y;
+		this.vy = 0;
+	}
+
+	function Enemy(x, y) {
+		this.x = x;
+		this.y = y;
+		this.vy = getRandomInt(-20, 20) + 50;
+	}
+
+	function getDistance(x1, y1, x2, y2) {
+		return Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
+	}
+	//Made up sounds
+	//The shoot sound
+	function shootSound() {
+		soundEffect(1046.5, //frequency
+			0, //attack
+			0.3, //decay
+			"sawtooth", //waveform
+			1, //Volume
+			-0.8, //pan
+			0, //wait before playing
+			1200, //pitch bend amount
+			false, //reverse bend
+			0, //random pitch range
+			25, //dissonance
+			[0.2, 0.2, 2000], //echo: [delay, feedback, filter]
+			undefined //reverb: [duration, decay, reverse?]
+		);
+	}
+	//The jump sound
+	function jumpSound() {
+		soundEffect(523.25, //frequency
+			0.05, //attack
+			0.2, //decay
+			"sine", //waveform
+			1, //volume
+			0.8, //pan
+			0, //wait before playing
+			600, //pitch bend amount
+			true, //reverse
+			100, //random pitch range
+			0, //dissonance
+			undefined, //echo: [delay, feedback, filter]
+			undefined //reverb: [duration, decay, reverse?]
+		);
+	}
+	//The explosion sound
+	function explosionSound() {
+		soundEffect(16, //frequency
+			0, //attack
+			0.3, //decay
+			"sawtooth", //waveform
+			1, //volume
+			0, //pan
+			0, //wait before playing
+			0, //pitch bend amount
+			false, //reverse
+			0, //random pitch range
+			50, //dissonance
+			undefined, //echo: [delay, feedback, filter]
+			undefined //reverb: [duration, decay, reverse?]
+		);
+	}
+	//The bonus points sound
+	function bonusSound() {
+		//D
+		soundEffect(587.33, 0, 0.2, "square", 1, 0, 0);
+		//A
+		soundEffect(880, 0, 0.2, "square", 1, 0, 0.05);
+		//High D
+		soundEffect(1174.66, 0, 0.3, "square", 1, 0, 0.1);
+	}
+	</script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-63832735-1"></script>
+	<script>
+	window.dataLayer = window.dataLayer || [];
+
+	function gtag() {
+		dataLayer.push(arguments);
+	}
+	gtag('js', new Date());
+	gtag('config', 'UA-63832735-1');
+	</script>
+
+</html>
