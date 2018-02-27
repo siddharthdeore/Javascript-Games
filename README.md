@@ -1,5 +1,5 @@
 # Javascript Games
 basic javascipt shooter game
-[Demo](http://www.siroi.co.in/golimar/) <br />
+[Demo](https://siddharthdeore.github.io/Javascript-Games/) <br />
 Skateboard Jump
-[Demo](http://www.siroi.co.in/skate/)
+[Demo](https://siddharthdeore.github.io/Javascript-Games/skate/)
